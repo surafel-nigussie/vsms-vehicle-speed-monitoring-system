@@ -22,7 +22,7 @@ function varargout = Home(varargin)
 
 % Edit the above text to modify the response to help Home
 
-% Last Modified by GUIDE v2.5 18-Mar-2016 16:22:05
+% Last Modified by GUIDE v2.5 24-Mar-2016 14:24:59
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 0;
@@ -68,7 +68,7 @@ function varargout = Home_OutputFcn(hObject, eventdata, handles)
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+set(gcf, 'units','normalized','outerposition',[0 0 1 1]);
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
@@ -96,9 +96,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in pushbutton3.
-function pushbutton3_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton3 (see GCBO)
+% --- Executes on button press in get_camera_button.
+function get_camera_button_Callback(hObject, eventdata, handles)
+% hObject    handle to get_camera_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.listbox_availablecamera, 'String', []);
@@ -111,12 +111,75 @@ for i=1 : length(camlist)
 end
 
 
-% --- Executes on button press in pushbutton4.
-function pushbutton4_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton4 (see GCBO)
+% --- Executes on button press in preview_button.
+function preview_button_Callback(hObject, eventdata, handles)
+% hObject    handle to preview_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 val = get(handles.listbox_availablecamera,'Value');
 cam_slctd = webcam(val);
 cam_slctd.Resolution = '640x480';
-imshow(snapshot(cam_slctd));
+imshow(snapshot(cam_slctd), 'Parent', handles.axes1);
+
+
+% --- Executes when figure1 is resized.
+function figure1_SizeChangedFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in getVideo_button.
+function getVideo_button_Callback(hObject, eventdata, handles)
+% hObject    handle to getVideo_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.videoInputList, 'String', []);
+vidInput = imaqhwinfo;
+for i=1 : length(vidInput)
+     new_vid = char(vidInput(i).InstalledAdaptors);
+     prev_vid = get(handles.videoInputList, 'String');
+     vid_List = strvcat(prev_vid, new_vid);
+     set(handles.videoInputList, 'String', vid_List);
+end
+
+
+% --- Executes on button press in previewVideo.
+function previewVideo_Callback(hObject, eventdata, handles)
+% hObject    handle to previewVideo (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+value = get(handles.videoInputList,'Value');
+vid_Selection = imaqhwinfo;
+vid = videoinput(char(vid_Selection(value).InstalledAdaptors), 1, 'MJPG_1280x720');
+axes(handles.axes1);
+start(vid);
+while islogging(vid);
+    img = getdata(vid,1);
+    showFrameOnAxis(handles.axes1, img);
+end
+
+% imshow(snapshot(cam_slctd), 'Parent', handles.axes1);
+
+
+% --- Executes on selection change in videoInputList.
+function videoInputList_Callback(hObject, eventdata, handles)
+% hObject    handle to videoInputList (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns videoInputList contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from videoInputList
+
+
+% --- Executes during object creation, after setting all properties.
+function videoInputList_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to videoInputList (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
