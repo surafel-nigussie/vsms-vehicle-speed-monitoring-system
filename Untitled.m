@@ -1,9 +1,8 @@
-vid_Selection = imaqhwinfo;
-vid_val = 1;
-vid = videoinput(char(vid_Selection(1).InstalledAdaptors), 1, 'MJPG_1280x720');
-% axes(handles.axes1);
-start(vid);
-while islogging(vid);
-    img = getdata(vid,1);
-    imshow(img);
+vid_obj = videoinput('winvideo',2,'YUY2_640x480');
+vid_obj.FrameGrabInterval = 1; 
+vid_obj.ReturnedColorspace = 'rgb';
+start(vid_obj);
+while islogging(vid_obj);
+    data = getsnapshot(vid_obj);
+    imshow(data);
 end

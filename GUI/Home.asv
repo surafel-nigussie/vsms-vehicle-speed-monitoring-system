@@ -149,20 +149,41 @@ function previewVideo_Callback(hObject, eventdata, handles)
 % hObject    handle to previewVideo (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+% % % value = get(handles.videoInputList,'Value');
+% % % vid_Selection = imaqhwinfo;
+% % % vid_obj = videoinput(char(vid_Selection(value).InstalledAdaptors), 1, 'MJPG_1280x720');
+% % % start(vid_obj);
+% % % axes(handles.axes1);
+% % % while islogging(vid_obj);
+% % %     img = getdata(vid_obj,1);
+% % %     image(img);
+% % %     flushdata(vid_obj);
+% % % end
+
+% % % value = get(handles.videoInputList,'Value');
+% % % vid_Selection = imaqhwinfo;
+% % % vid_obj = videoinput(char(vid_Selection(value).InstalledAdaptors), 1, 'MJPG_1280x720');
+% % % axes(handles.axes1);
+% % % vidRes = vid_obj.VideoResolution;
+% % % nBands = vid_obj.NumberOfBands;
+% % % hImage = image( zeros(vidRes(2), vidRes(1), nBands) );
+% % % preview(vid_obj, hImage);
+
+% imshow(snapshot(cam_slctd), 'Parent', handles.axes1);
 
 value = get(handles.videoInputList,'Value');
 if value == 1
-    vid_obj = videoinput('winvideo', 1, 'MJPG_1280x720');
-elseif value == 2
-    vid_obj = videoinput('winvideo', 2, 'YUY2_640x480');
+    vid_obj = videoinput('winvideo', value);
+else
+    vid_obj = videoinput('winvideo', value);
 end
-vid_obj.FrameGrabInterval = 1; 
-vid_obj.ReturnedColorspace = 'rgb';
+vid_obj = videoinput('winvideo', value);
 start(vid_obj);
 axes(handles.axes1);
 while islogging(vid_obj);
-    data = getsnapshot(vid_obj);
-    imshow(data);
+    data = getsnapshot(vid);
+    image(img);
+    flushdata(vid_obj);
 end
 
 
