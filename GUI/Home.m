@@ -22,7 +22,7 @@ function varargout = Home(varargin)
 
 % Edit the above text to modify the response to help Home
 
-% Last Modified by GUIDE v2.5 24-Mar-2016 14:24:59
+% Last Modified by GUIDE v2.5 28-Mar-2016 21:57:53
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 0;
@@ -146,6 +146,7 @@ end
 
 % --- Executes on button press in previewVideo.
 function previewVideo_Callback(hObject, eventdata, handles)
+%%
 % hObject    handle to previewVideo (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -158,12 +159,22 @@ elseif value == 2
 end
 vid_obj.FrameGrabInterval = 1; 
 vid_obj.ReturnedColorspace = 'rgb';
-start(vid_obj);
+
+%Building image height and width from the camera resolution option
+vidRes = vid_obj.VideoResolution; 
+nBands = vid_obj.NumberOfBands; 
+hImage = image( zeros(vidRes(2), vidRes(1), nBands) ); 
+
+%Setting the function the will be called every time a new frame is received
+setappdata(hImage,'UpdatePreviewWindowFcn',@updater);
+dbtype('updater.m')
+
+%Gettting the axis that will be used to preview the incoming video stream
 axes(handles.axes1);
-while islogging(vid_obj);
-    data = getsnapshot(vid_obj);
-    imshow(data);
-end
+
+%Start the camera preview
+preview(vid_obj, hImage);
+
 
 
 % --- Executes on selection change in videoInputList.
@@ -187,3 +198,14 @@ function videoInputList_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in stop_preview.
+function stop_preview_Callback(hObject, eventdata, handles)
+% hObject    handle to stop_preview (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% vObj = get(hObject.vid_obj);
+% stoppreview(vObj);
+% delete(vObj);
+% clear vObj;
