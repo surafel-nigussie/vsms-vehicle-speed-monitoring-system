@@ -1,3 +1,4 @@
+
 function varargout = Home(varargin)
 % HOME MATLAB code for Home.fig
 %      HOME, by itself, creates a new HOME or raises the existing
@@ -22,7 +23,7 @@ function varargout = Home(varargin)
 
 % Edit the above text to modify the response to help Home
 
-% Last Modified by GUIDE v2.5 28-Mar-2016 21:57:53
+% Last Modified by GUIDE v2.5 04-Apr-2016 10:40:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 0;
@@ -68,10 +69,17 @@ function varargout = Home_OutputFcn(hObject, eventdata, handles)
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-set(gcf, 'units','normalized','outerposition',[0 0 1 1]);
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
+% % To set the layout view of figure to fullsize
+set(gcf, 'units','normalized','outerposition',[0 0 1 1]);
+% % % % % Here we declare all the video and camera objects to be used in later
+% % % handles.vid_obj_asus = videoinput('winvideo', 1, 'MJPG_1280x720');
+% % % % handles.vid_obj_usb = videoinput('winvideo', 2, 'YUY2_640x480');
+% % % handles.cam_obj_asus = webcam(1);
+% % % % handles.cam_obj_usb = webcam(2);
+% % % guidata(hObject,handles);
 
 % --- Executes on selection change in listbox_availablecamera.
 function listbox_availablecamera_Callback(hObject, eventdata, handles)
@@ -104,18 +112,21 @@ function get_camera_button_Callback(hObject, eventdata, handles)
 set(handles.listbox_availablecamera, 'String', []);
 camlist = webcamlist;
 for i=1 : length(camlist)
-    new_cam = char(webcam(i).name);
+    webc = webcam(i);
+    new_cam = char(webc.name);
     prv_cam = get(handles.listbox_availablecamera, 'String');
     cam_list = strvcat(prv_cam, new_cam);
     set(handles.listbox_availablecamera, 'String', cam_list);
 end
-
+clear webc;
 
 % --- Executes on button press in preview_button.
 function preview_button_Callback(hObject, eventdata, handles)
 % hObject    handle to preview_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+clear cam_slctd;
 val = get(handles.listbox_availablecamera,'Value');
 cam_slctd = webcam(val);
 cam_slctd.Resolution = '640x480';
@@ -137,12 +148,13 @@ function getVideo_button_Callback(hObject, eventdata, handles)
 set(handles.videoInputList, 'String', []);
 vidInputDevice = webcamlist;
 for i=1 : length(vidInputDevice)
-    new_Vid = char(webcam(i).name);
+    webc = webcam(i);
+    new_Vid = char(webc.name);
     prv_Vide = get(handles.videoInputList, 'String');
     cam_list = strvcat(prv_Vide, new_Vid);
     set(handles.videoInputList, 'String', cam_list);
 end
-
+clear webc;
 
 % --- Executes on button press in previewVideo.
 function previewVideo_Callback(hObject, eventdata, handles)
@@ -150,7 +162,8 @@ function previewVideo_Callback(hObject, eventdata, handles)
 % hObject    handle to previewVideo (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+clear vid_obj;
+cla;
 value = get(handles.videoInputList,'Value');
 if value == 1
     vid_obj = videoinput('winvideo', 1, 'MJPG_1280x720');
@@ -159,22 +172,21 @@ elseif value == 2
 end
 vid_obj.FrameGrabInterval = 1; 
 vid_obj.ReturnedColorspace = 'rgb';
-
 %Building image height and width from the camera resolution option
 vidRes = vid_obj.VideoResolution; 
 nBands = vid_obj.NumberOfBands; 
 hImage = image( zeros(vidRes(2), vidRes(1), nBands) ); 
-
 %Setting the function the will be called every time a new frame is received
-setappdata(hImage,'UpdatePreviewWindowFcn',@updater);
-dbtype('updater.m')
-
+setappdata(hImage,'UpdatePreviewWindowFcn',@FrameProcessor);
+% setappdata(hImage,'UpdatePreviewWindowFcn',@vision_processor);
+setappdata(hImage,'HandleToBackgroundImage',handles.bgimage);
+setappdata(hImage,'HandleToAxis',handles.axes1);
+setappdata(hImage,'HandleToHandle',handles);
+dbtype('FrameProcessor.m')
 %Gettting the axis that will be used to preview the incoming video stream
 axes(handles.axes1);
-
 %Start the camera preview
 preview(vid_obj, hImage);
-
 
 
 % --- Executes on selection change in videoInputList.
@@ -200,12 +212,21 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in stop_preview.
-function stop_preview_Callback(hObject, eventdata, handles)
-% hObject    handle to stop_preview (see GCBO)
+% --- Executes on button press in get_background_btn.
+function get_background_btn_Callback(hObject, eventdata, handles)
+% hObject    handle to get_background_btn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% vObj = get(hObject.vid_obj);
-% stoppreview(vObj);
-% delete(vObj);
-% clear vObj;
+selectedcam = webcam(1);
+selectedcam.Resolution = '1280x720';
+handles.bgimage = snapshot(selectedcam);
+imshow(handles.bgimage, 'Parent', handles.axes1);
+clear selectedcam;
+guidata(hObject,handles);
+
+% --- Executes on button press in clear_axis_btn.
+function clear_axis_btn_Callback(hObject, eventdata, handles)
+% hObject    handle to clear_axis_btn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+cla;
