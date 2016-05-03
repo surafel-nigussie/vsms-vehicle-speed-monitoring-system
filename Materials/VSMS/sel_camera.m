@@ -64,9 +64,6 @@ es_web_ext = handles.es_web_ext;
 id = handles.id;
 close (handles.camara)
 
-
-
-
 function formatos_Callback(hObject, eventdata, handles)
 % hObject    handle to formatos (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB

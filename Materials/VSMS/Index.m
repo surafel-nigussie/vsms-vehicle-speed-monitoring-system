@@ -1,53 +1,72 @@
 
 %%
-In = imread('C:\Users\Surafel Nigussie\Documents\Matlab\Images\BGSUBT (1).JPG');
-Ib = imread('C:\Users\Surafel Nigussie\Documents\Matlab\Images\BGSUBT (2).JPG');
-% figure, imshow(In);
+input_image = imread('C:\Users\Surafel Nigussie\Documents\Matlab\Images\BGSUBT (1).JPG');
+background = imread('C:\Users\Surafel Nigussie\Documents\Matlab\Images\BGSUBT (2).JPG');
 
 %%
-INgray=rgb2gray(In);
-IBgray=rgb2gray(Ib);
-% figure, imshow(IBgray);
+% Perform image difference from the new image and the background image
+threshold = 8;
+difference = (abs(input_image(:,:,1) - background(:,:,1)) > threshold) | (abs(input_image(:,:,2) - background(:,:,2)) > threshold) ...
+                    | (abs(input_image(:,:,3) - background(:,:,3)) > threshold);    
+figure, imshow(difference);       
 
 %%
-Isubt=imsubtract(IBgray,INgray);
-% figure, imshow(Isubt);
+% Performs morphological closing (dilation followed by erosion).
+bwmrph = bwmorph(difference,'close');
+figure, imshow(bwmrph);
 
 %%
-[r,c] = size(Isubt);
-Ivalues = zeros(r,c);
-for i = 1:r
-    for j = 1:c
-        if Isubt(i,j) > 10
-            Ivalues(i,j) = 1;
-        end
-    end
+% Performs morphological opening (erosion followed by dilation).
+difference = bwmorph(bwmrph,'open');        
+difference = bwmorph(difference,'erode',2);
+figure, imshow(difference);
+
+%%
+% Select the biggest object
+big_object = bwlabel(difference,8);
+figure, imshow(big_object);
+
+%%
+% Measure properties of image regions such as: 'Area', 'Centroid', and 'Box'
+object = regionprops(big_object);
+
+%%
+% Number of objects in in the image.
+N = size(object,1); 
+
+%%
+% Return whether no object in the image
+if N < 1||isempty(object) 
+    return
 end
-figure, imshow(Ivalues);
 
 %%
-Ibwopen = bwareaopen(Ivalues, 200);
+% Remove holes less than 200 pixels
+holeFilled = find([object.Area]<200);
+if ~isempty(holeFilled)
+    object(holeFilled)=[ ];
+end
+
+%%
+% Count objects
+N = size(object,1);
+if N < 1 || isempty(object)
+    return
+end
+
+%%
+Ibwopen = bwareaopen(big_object, 200);
 Ifill = imfill(Ibwopen,'holes');
-% figure, imshow(Ifill);
+figure, imshow(Ifill);
 
 %%
-se = strel('square',20); 
-IDialated = imdilate(Ifill, se); 
-% figure, imshow(IDialated);
-
-%%
-% % % figure, imshow(IDialated); %Bounding box generated below can only be viewed if this frame is opened
-% % % [img_labled, Index] = bwlabel( IDialated );
-% % % Img_Props = regionprops(img_labled); 
-% % % Img_Box = [Img_Props.BoundingBox]; 
-% % % Img_Box = reshape(Img_Box,[4 Index]);
-% % % for count = 1:Index 
-% % %     rectangle('position',Img_Box(:,count),'edgecolor','r'); 
-% % % end
-
-%%
-[Labled_Image, Index] = bwlabel( IDialated );
-Img_Props = regionprops(Labled_Image); 
-Img_Box = [Img_Props.BoundingBox];
-Image_Fin = insertShape(In, 'Rectangle', Img_Box, 'Color', 'green');
-% figure, imshow(Image_Fin);
+% Draw a rectangle and center point for every object in the image
+for n = 1 : N
+    hold on
+    centroid = object(n).Centroid;
+    C_X = centroid(1);
+    C_Y = centroid(2);
+    rectangle('Position',object(n).BoundingBox,'EdgeColor','g','LineWidth',1);
+    plot(C_X,C_Y,'Color','g','Marker','+','LineWidth',1);
+    hold off
+end

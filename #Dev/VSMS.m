@@ -71,8 +71,8 @@ end
 
 %%
 %Adjusting image color contrast
-    target = imadjust(target);
-    subplot(3,3,9); imshow(target);
+target = imadjust(target);
+subplot(3,3,9); imshow(target);
 
 %%
 %To clear all variables and command window

@@ -156,66 +156,66 @@ function previewVideo_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 axes(handles.axes1); cla; 
-
 % Get threshold
-pop=str2double(get(handles.pop,'String'));
-
+pop = str2double(get(handles.pop,'String'));
 % Verify whether threshold is numerical value
 if pop < 0 || isnan(pop) || isempty(pop)
     errordlg('Input numerical value','ERROR')
     return
 end
-
 % User data 0 (1 stop capture)
 set(handles.stop,'UserData',0)
-
 % Get video source and background
-bg=handles.backg;
+bg = handles.backg;
 global id es_web_ext;
-        
-if es_web_ext==0
-    format='YUY2_176x144';
+
+if es_web_ext == 0
+    format = 'YUY2_640x480';
 else
-    format='RGB24_320x240';
+    format = 'RGB24_640x480';
 end
-    try
-        vid = videoinput('winvideo',id,format);
-        guidata(hObject, handles);
-    catch
-        msgbox('Check the connection of the camera','Camera')
-        set(handles.axes1,'XTick',[ ],'YTick',[ ])
-    end
-        % Specify how often to acquire frame from video stream
-        vid.FrameGrabInterval =2;
-        set(vid,'TriggerRepeat',Inf);
-        start(vid);
-        handles.vid=vid;
-        count=0;
-while 1
+
+%Create the video object
+try
+    vid = videoinput('winvideo', id, format);
+    guidata(hObject, handles);
+catch
+    msgbox('Check the connection of the camera','Camera')
+    set(handles.axes1,'XTick',[ ],'YTick',[ ])
+end
+    % Specify how often to acquire frame from video stream
+    vid.FrameGrabInterval = 2;
+    set(vid,'TriggerRepeat',Inf);
+    start(vid);
+    handles.vid = vid;
+    count = 0;
+%A loop for each new frame received from the camera, also counts the number
+%of frames arrived
+while islogging(vid)
     if get(handles.stop,'UserData') % Data from "Stop" button
         break
     end
     % Get image
-    if es_web_ext==0
-        get_image = ycbcr2rgb(getdata(vid,1));
+    if es_web_ext == 0
+        get_image = ycbcr2rgb(getdata(vid, 1));
     else
-        get_image = getdata(vid,1);
+        get_image = getdata(vid, 1);
     end
     % Show image
-    image(get_image)
+    image(get_image);
     % Convert image to double
     input_image = double(get_image);
-    axis image off
+    axis image off;
     % Call "compare" function
     if( compare(input_image,bg,pop))
-        count=count+1;
-        im=getsnapshot(vid);
-        img=ycbcr2rgb(im);%remove noise 
+        count = count + 1;
+        img = getsnapshot(vid);
+        img = ycbcr2rgb(img); %remove noise 
         if((count>30 )&&(count<50))
-            imwrite(img,strcat('snap',num2str(count),'.png'));                             
+            imwrite(img, strcat('snap',num2str(count), '.png'));                             
         end
     end
-    drawnow
+    drawnow;
 end
 stop(vid);
 delete(vid);
@@ -269,18 +269,19 @@ set(hObject,'UserData',0) %User data 0 (1 stop capture)
 % Get default source
       
         % Open GUI to select the camera to use
-        sel_camera
+        sel_camera;
         %
-        uiwait
+        uiwait;
         % Bring the camera features
         % id = Camera ID
         % es_web_ext = indicator if laptop or external camera
-        global id es_web_ext
+        global id es_web_ext;
         % Determine format depending on the type of camera to use
-        if es_web_ext==0
-            formt='YUY2_176x144';
+        if es_web_ext == 0
+            formt = 'YUY2_640x480';
         else
-            formt='RGB24_320x240';
+            formt = 'RGB24_640x480';
+            %formt='RGB24_320x240';
         end
         try
             % Create video object
@@ -301,10 +302,10 @@ set(hObject,'UserData',0) %User data 0 (1 stop capture)
         vid.FramesPerTrigger=50;
         start(vid);
         data = getdata(vid,50);
-        if es_web_ext==0
-            bgImage=double(ycbcr2rgb(data(:,:,:,50)));
+        if es_web_ext == 0
+            bgImage = double(ycbcr2rgb(data(:,:,:,50)));
         else
-            bgImage=double(data(:,:,:,50));
+            bgImage = double(data(:,:,:,50));
         end
         % Set last image as background
         % Show background

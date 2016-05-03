@@ -69,23 +69,23 @@ for count = 1:Index
         IDialate(CC.PixelIdxList{count}) = 0;
     end
 end
-% figure, imshow(IDialate);
+figure, imshow(IDialate);
 
 %%
 for j = 1:Index
     [row, col] = find(img_labled == j);
     len = max(row) - min(row) + 2;
     brdth = max(col) - min(col) + 2;
-    target = int16(zeros(len, brdth));
+    target = uint8(zeros(len, brdth));
     sy = min(col) - 1;
     sx = min(row) - 1;
     for i = 1:size(row, 1)  
         x = row(i,1) - sx;
         y = col(i,1) - sy;
-        target(x,y) = input_image(row(i,1), col(i,1));
+        target(x,y) = image(row(i,1), col(i,1));
     end
+    subplot(3,3,8); imshow(target);
 end
-% figure, imshow(target);
 
 %%
 % Draw a rectangle and center point for every object in the image
